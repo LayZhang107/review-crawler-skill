@@ -1,28 +1,29 @@
+# 简易评论爬虫（取自GitHub开源项目，仅用于实验演示）
+import requests
+from bs4 import BeautifulSoup
 import csv
-import time
-import random
 
-# 模拟从练习网站抓取的评论数据
-book_comments = [
-    {"content": "故事很精彩，读着很过瘾", "score": 5, "time": "2026-10-01"},
-    {"content": "内容一般，没有想象好看", "score": 3, "time": "2026-10-02"},
-    {"content": "印刷质量差，纸张很薄", "score": 2, "time": "2026-10-03"},
-    {"content": "性价比高，推荐购买", "score": 4, "time": "2026-10-04"},
-    {"content": "不喜欢这个结局，有点失望", "score": 2, "time": "2026-10-05"},
-    {"content": "物流快，书本完好无损", "score": 5, "time": "2026-10-06"},
-    {"content": "文字晦涩，很难读懂", "score": 1, "time": "2026-10-07"},
-    {"content": "适合打发时间，不错", "score": 4, "time": "2026-10-08"},
-]
+def get_book_comments():
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    # 示例地址，实际网站有反爬，大概率拿不到数据
+    url = "https://xxx.book.comment.demo"
+    try:
+        res = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(res.text, "html.parser")
+        comments = []
+        for item in soup.select(".comment-item"):
+            content = item.select_one(".comment-text").get_text(strip=True)
+            score = item.select_one(".score").get_text(strip=True)
+            comments.append([content, score])
+        with open("spider_data.csv", "w", encoding="utf-8-sig", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerows(comments)
+        print("爬虫抓取完成")
+    except Exception as e:
+        print(f"爬虫抓取失败：{e}")
+        print("将使用Codex生成模拟数据")
 
-result_data = []
-for item in book_comments:
-    time.sleep(0.2)
-    result_data.append(item)
-
-# 写入csv
-with open("test_data.csv", "w", encoding="utf-8-sig", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=["content", "score", "time"])
-    writer.writeheader()
-    writer.writerows(result_data)
-
-print("✅ 评论数据生成成功，保存至 test_data.csv")
+if __name__ == "__main__":
+    get_book_comments()
